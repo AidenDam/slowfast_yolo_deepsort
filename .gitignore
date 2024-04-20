@@ -1,0 +1,13 @@
+*.pkl
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.jpg
+*.mp4
+*.avi
+.vscode
+*.log
+*__pycache__*
+weights/*
+output/

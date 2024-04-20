@@ -1,0 +1,29 @@
+item {
+  id: 1
+  name: "Bend"
+}
+
+item {
+  id: 2
+  name: "Look at screen"
+}
+
+item {
+  id: 3
+  name: "Sit"
+}
+
+item {
+  id: 4
+  name: "Stand"
+}
+
+item {
+  id: 5
+  name: "Talk"
+}
+
+item {
+  id: 6
+  name: "Walk"
+}
