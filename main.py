@@ -49,6 +49,7 @@ def main():
     csv_writer.writerow(['person', 'time', 'behavior', 'position', 'identity'])
     while not cap.end:
         _, _ = cap.read()
+        if cap.idx > 90: break
 
         if len(cap.stack) == cfg.DATA.NUM_FRAMES:
             print(f"processing {cap.idx//30}th second clips")
@@ -70,9 +71,13 @@ def main():
             # action detection
             inputs, inp_boxes = preprocess(clip, bboxes, max(input_size))
             with torch.no_grad():
+                # (num_bboxes, num_classes)
                 preds = video_detector(inputs, inp_boxes).cpu().numpy()
-            action_scores = np.max(preds, axis=1)
-            action_names = [ava_labelnames[it+1] for it in np.argmax(preds, axis=1)]
+            action_scores, action_names = [], []
+            for it in preds:
+                idx = it > cfg.SLOWFAST.THRESH_ACT
+                action_scores.append(it[idx])
+                action_names.append([ava_labelnames[i+1] for i in np.where(idx)[0]])
 
             
             # visualization
@@ -84,7 +89,7 @@ def main():
                     identity = '' if len(identity) == 0 else identity[0][-1]
                 else:
                     identity = ''
-                csv_writer.writerow([f's{i}', cap.idx/30, action_name, ' '.join(bbox.astype('str')), identity])
+                csv_writer.writerow([f's{i}', cap.idx/30, ';'.join(action_name), ' '.join(bbox.astype('str')), identity])
 
     print('Done!!!')
     cap.release()

@@ -116,6 +116,9 @@ _C.SLOWFAST.FUSION_CONV_CHANNEL_RATIO = 2
 # pathway.
 _C.SLOWFAST.FUSION_KERNEL_SZ = 7
 
+# Threshold for action detection
+_C.SLOWFAST.THRESH_ACT = 0.5
+
 
 # ---------------------------------------------------------------------------- #
 # Detection options.
@@ -141,8 +144,7 @@ _C.MODEL.NUM_CLASSES = 6
 _C.MODEL.DROPOUT_RATE = 0.5
 
 # Activation layer for the output head.
-_C.MODEL.HEAD_ACT = "softmax"
-
+_C.MODEL.HEAD_ACT = "sigmoid"
 
 # -----------------------------------------------------------------------------
 # Data options
