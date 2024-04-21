@@ -9,13 +9,15 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--yolo_path', default='./yolo_dataset',type=str)
-parser.add_argument('--ava_path', default='./ava_dataset',type=str)
+parser.add_argument('--yolo_path', default='./yolo_dataset', type=str)
+parser.add_argument('--ava_path', default='./ava_dataset', type=str)
+parser.add_argument('--video_path', required=True, help='video path to extract video', type=str)
 
 arg = parser.parse_args()
 
 yolo_path = arg.yolo_path
 ava_path = arg.ava_path
+video_path = arg.video_path
 
 # SCB_train_predicted_boxes.csv
 # SCB_val_predicted_boxes.csv
@@ -191,8 +193,11 @@ def get_cap(file_path, frame_num):
     if frame_num >= 0 & frame_num <= totalFrames:
         # set frame position
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
-    
-    return cap
+        miss_frame = 0
+    else:
+        miss_frame = abs(frame_num) + 1
+
+    return cap, miss_frame
 
 
 if __name__ == "__main__":
@@ -296,6 +301,8 @@ if __name__ == "__main__":
                 if not os.path.exists(img_path):
                     continue
                 
+                print('process:', name)
+
                 with open(txt_path, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
                     for line in lines:
@@ -314,10 +321,21 @@ if __name__ == "__main__":
                 os.makedirs(os.path.join(ava_path,"./frames",key_name))
 
                 # change path video
-                cap = get_cap('/home/getdata/2024-03-16_13-41-14.avi', int(key_name.split('_')[0]))
+                cap, miss_frame = get_cap(video_path, int(key_name.split('_')[0]) - 60)
+                ret, frame_tmp = cap.read()
+                while not ret: ret, frame_tmp = cap.read()
+                for i in range(miss_frame):
+                    name_id_xyxy_action_pid = [key_name, video_id , i, os.path.join(key_name,key_name+"_"+str(i+1).zfill(6)+".jpg"),  f'“”']
+                    path_dest = os.path.join(ava_path, './frames/',key_name,key_name+"_"+str(i+1).zfill(6)+".jpg")
 
-                for i in range(4*30+31):
-                    
+                    cv2.imwrite(path_dest, frame_tmp)
+
+                    if 'train' in txt_path:
+                        SCB_frame_train_writer.writerow(name_id_xyxy_action_pid)
+                    if 'val' in txt_path:
+                        SCB_frame_val_writer.writerow(name_id_xyxy_action_pid)
+
+                for i in range(miss_frame, 4*30+31):
                     name_id_xyxy_action_pid = [key_name, video_id , i, os.path.join(key_name,key_name+"_"+str(i+1).zfill(6)+".jpg"),  f'“”']
                     path_dest = os.path.join(ava_path, './frames/',key_name,key_name+"_"+str(i+1).zfill(6)+".jpg")
 
@@ -353,4 +371,4 @@ if __name__ == "__main__":
     SCB_frame_train.close()
     SCB_frame_val.close()
 
-    
+    print('Done!!!')
