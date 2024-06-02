@@ -20,9 +20,10 @@ def parse_args():
     parser.add_argument('--input', type=str, default="0", help='test imgs folder or video or camera')
     parser.add_argument('--output_dir', type=str, default="output/", help='folder to save result')
     parser.add_argument('--output_video', type=str, default="output.mp4", help='file name to save result video')
+    parser.add_argument('--save_all_video', type=bool, default=False, help='whether save all video or only detected frame')
     parser.add_argument('--output_csv', type=str, default="output.csv", help='file name to save result csv')
     # object detect config
-    parser.add_argument('--yolo_ckpt', default='weights/ckpt.t7', help='yolo checkpoint')
+    parser.add_argument('--yolo_ckpt', default='weights/yolov8m.onnx', help='yolo checkpoint')
     # tracker config
     parser.add_argument('--tracker_ckpt', default='weights/ckpt.t7', help='deepsort checkpoint')
     # SlowFast config

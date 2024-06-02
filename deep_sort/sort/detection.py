@@ -28,7 +28,7 @@ class Detection(object):
 
     def __init__(self, tlwh, confidence: float, feature, bbox_idx: int=None):
         self.bbox_idx = bbox_idx
-        self.tlwh = np.asarray(tlwh, dtype=np.float)
+        self.tlwh = np.asarray(tlwh, dtype=np.float64)
         self.confidence = float(confidence)
         self.feature = np.asarray(feature, dtype=np.float32)
 

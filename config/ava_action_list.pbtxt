@@ -1,24 +1,29 @@
 item {
-  name: "Bend"
+  name: "Look At Screen"
   id: 1
 }
-item {
-  name: "Look at screen"
-  id: 2
-}
+
 item {
   name: "Sit"
+  id: 2
+}
+
+item {
+  name: "Sleep"
   id: 3
 }
+
 item {
   name: "Stand"
   id: 4
 }
+
 item {
   name: "Talk"
   id: 5
 }
+
 item {
-  name: "Walk"
+  name: "Use Phone"
   id: 6
 }

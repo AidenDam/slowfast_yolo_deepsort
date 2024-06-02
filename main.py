@@ -43,20 +43,21 @@ def main():
     input_size = yolov8_detector.input_width, yolov8_detector.input_height
 
     cap = MyVideoCapture(args.input)
-    video_writer = cv2.VideoWriter(args.output_video, cv2.VideoWriter_fourcc(*'mp4v'), round(30.0/cfg.DATA.NUM_FRAMES), cap.shape)
+    fps_video_save = 10.0 if args.save_all_video else round(20.0/cfg.DATA.NUM_FRAMES)
+    video_writer = cv2.VideoWriter(args.output_video, cv2.VideoWriter_fourcc(*'mp4v'), fps_video_save, cap.shape)
     csv_file  = open(args.output_csv,'w',encoding='utf-8')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow(['person', 'time', 'behavior', 'position', 'identity'])
     while not cap.end:
         _, _ = cap.read()
-        if cap.idx > 90: break
 
-        if len(cap.stack) == cfg.DATA.NUM_FRAMES:
+        if len(cap.stack) == cfg.DATA.NUM_FRAMES*cfg.DATA.SAMPLING_RATE:
             print(f"processing {cap.idx//30}th second clips")
-            clip = cap.get_video_clip()
+            clip = cap.get_video_clip()[::cfg.DATA.SAMPLING_RATE]
+            frame_detect_idx = cfg.DATA.NUM_FRAMES//2
             
             # object detection
-            bboxes, scores, class_ids = yolov8_detector(clip[0])
+            bboxes, scores, class_ids = yolov8_detector(clip[frame_detect_idx])
             # select class person
             mask = class_ids == 0
             bboxes, scores = bboxes[mask], scores[mask]
@@ -66,7 +67,7 @@ def main():
 
             # tracking
             # [bbox_idx,x1,y1,x2,y2,track_id]
-            tracked = tracker.update(bboxes, scores, cv2.cvtColor(clip[0], cv2.COLOR_BGR2RGB))
+            tracked = tracker.update(bboxes, scores, cv2.cvtColor(clip[frame_detect_idx], cv2.COLOR_BGR2RGB))
 
             # action detection
             inputs, inp_boxes = preprocess(clip, bboxes, max(input_size))
@@ -76,13 +77,26 @@ def main():
             action_scores, action_names = [], []
             for it in preds:
                 idx = it > cfg.SLOWFAST.THRESH_ACT
-                action_scores.append(it[idx])
+
+                # choose stand or sit
+                if idx[1] and idx[3]:
+                    if idx[1] > idx[3]:
+                        idx[3] = False
+                    else:
+                        idx[1] = False
+
+                action_scores.append(it[idx]*100)
                 action_names.append([ava_labelnames[i+1] for i in np.where(idx)[0]])
 
             
             # visualization
-            img = Draw.draw_detections(clip[0], bboxes, action_names, action_scores, tracked)
-            video_writer.write(img)
+            img = Draw.draw_detections(clip[frame_detect_idx], bboxes, action_names, action_scores, tracked)
+            if args.save_all_video:
+                clip[frame_detect_idx] = img
+                for frame in clip:
+                    video_writer.write(frame)
+            else:
+                video_writer.write(img)
             for i, (action_name, bbox) in enumerate(zip(action_names, bboxes)):
                 if len(tracked) > 0:
                     identity = tracked[tracked[:,0]==i]

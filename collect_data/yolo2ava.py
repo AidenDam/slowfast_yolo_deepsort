@@ -295,11 +295,15 @@ if __name__ == "__main__":
         for name in files:
             if '.txt' in name and 'checkpoint' not in name:
                 txt_path = os.path.join(root, name)
-                key_name = name.split('.')[0]
+                key_name = name.split('.')[0].replace('frame_', '')
                 img_path = txt_path.replace("labels", "images")
                 img_path = img_path.replace("txt", "jpg")
                 if not os.path.exists(img_path):
                     continue
+                
+                with open(txt_path, 'r') as file_obj:
+                    if not file_obj.read(1):
+                        continue
                 
                 print('process:', name)
 
@@ -321,6 +325,7 @@ if __name__ == "__main__":
                 os.makedirs(os.path.join(ava_path,"./frames",key_name))
 
                 # change path video
+                img_size = cv2.imread(img_path).shape[1::-1]
                 cap, miss_frame = get_cap(video_path, int(key_name.split('_')[0]) - 60)
                 ret, frame_tmp = cap.read()
                 while not ret: ret, frame_tmp = cap.read()
@@ -328,7 +333,7 @@ if __name__ == "__main__":
                     name_id_xyxy_action_pid = [key_name, video_id , i, os.path.join(key_name,key_name+"_"+str(i+1).zfill(6)+".jpg"),  f'“”']
                     path_dest = os.path.join(ava_path, './frames/',key_name,key_name+"_"+str(i+1).zfill(6)+".jpg")
 
-                    cv2.imwrite(path_dest, frame_tmp)
+                    cv2.imwrite(path_dest, cv2.resize(frame_tmp, img_size))
 
                     if 'train' in txt_path:
                         SCB_frame_train_writer.writerow(name_id_xyxy_action_pid)
@@ -344,10 +349,10 @@ if __name__ == "__main__":
                     else:
                         ret, frame = cap.read()
                         if ret:
-                            cv2.imwrite(path_dest, frame)
+                            cv2.imwrite(path_dest, cv2.resize(frame, img_size))
                             frame_tmp = frame
                         else:
-                            cv2.imwrite(path_dest, frame_tmp)
+                            cv2.imwrite(path_dest, cv2.resize(frame_tmp, img_size))
 
                     if 'train' in txt_path:
                         SCB_frame_train_writer.writerow(name_id_xyxy_action_pid)
