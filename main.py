@@ -90,12 +90,13 @@ def main():
 
             
             # visualization
-            img = Draw.draw_detections(clip[frame_detect_idx], bboxes, action_names, action_scores, tracked)
             if args.save_all_video:
-                clip[frame_detect_idx] = img
+                for idx in range(frame_detect_idx-3, frame_detect_idx+3):
+                    clip[idx] = Draw.draw_detections(clip[idx], bboxes, action_names, action_scores, tracked)
                 for frame in clip:
                     video_writer.write(frame)
             else:
+                img = Draw.draw_detections(clip[frame_detect_idx], bboxes, action_names, action_scores, tracked)
                 video_writer.write(img)
             for i, (action_name, bbox) in enumerate(zip(action_names, bboxes)):
                 if len(tracked) > 0:
